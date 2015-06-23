@@ -11,13 +11,20 @@ Each function in here should
 import numpy as np
 import pandas as pd
 
-def none_missing(df, columns=None):
+def none_missing(df, sl=None, columns=None):
     """
     Asserts that there are no missing values (NaNs) in the DataFrame.
+    Parameters
+    ==========
+    df : Series or DataFrame    
+    sl : slice
+        Used to test a subset of the dataframe, using .iloc
+    columns : list of column names
     """
+    slc = sl or slice(None)
     if columns is None:
         columns = df.columns
-    assert not df[columns].isnull().any().any()
+    assert not df[columns].iloc[slc].isnull().any().any()
     return df
 
 def is_monotonic(df, items=None, increasing=None, strict=False):
@@ -76,7 +83,7 @@ def unique_index(df):
     return df
 
 
-def within_set(df, items=None):
+def within_set(df, sl=None, items=None):
     """
     Assert that df is a subset of items
 
@@ -84,35 +91,45 @@ def within_set(df, items=None):
     ==========
 
     df : DataFrame
+    sl : slice
+        Used to test a subset of the dataframe, using .iloc
     items : dict
         mapping of columns (k) to array-like of values (v) that
         ``df[k]`` is expected to be a subset of
     """
+    slc = sl or slice(None)
     for k, v in items.items():
-        if not df[k].isin(v).all():
+        if not df[k].iloc[slc].isin(v).all():
             raise AssertionError
     return df
 
-def within_range(df, items=None):
+def within_range(df, sl=None, items=None):
     """
     Assert that a DataFrame is within a range.
 
     Parameters
     ==========
     df : DataFame
+    sl : slice
+        Used to test a subset of the dataframe, using .iloc
     items : dict
         mapping of columns (k) to a (low, high) tuple (v)
         that ``df[k]`` is expected to be between.
     """
+    slc = sl or slice(None)
     for k, (lower, upper) in items.items():
-        if (lower > df[k]).any() or (upper < df[k]).any():
+        if (lower > df[k].iloc[slc]).any() or (upper < df[k].iloc[slc]).any():
             raise AssertionError
     return df
 
-def within_n_std(df, n=3):
+def within_n_std(df, sl=None, n=3):
+    """
+    TODO: Check broadcasting post-.iloc
+    """
+    slc = sl or slice(None)
     means = df.mean()
     stds = df.std()
-    if not (np.abs(df - means) < n * stds).all().all():
+    if not (np.abs(df.iloc[slc] - means) < n * stds).all().all():
         raise AssertionError
     return df
 
