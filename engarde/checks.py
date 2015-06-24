@@ -116,6 +116,81 @@ def within_n_std(df, n=3):
         raise AssertionError
     return df
 
+def within_pct_n_std(df, periods=1, n=3.0):
+    """
+    Assert that a DataFrame's percent change is within a standard deviation.
+
+    Parameters
+    ==========
+    df : DataFame
+    periods : int
+        Number of periods to use for the pct_change() function
+    n : float
+        Number of standard deviations
+    """
+    pct = df.pct_change(periods)
+    means = pct.mean()
+    stds = pct.std()
+    if not (np.abs(pct - means) < n * stds).all().all():
+        raise AssertionError
+    return df
+
+def recent_within_max_min_plus(df, factor=0.1, check=-2):
+    """
+    Assert that all the datapoints after the check point, in the index
+    are within a tolerance factor from the max and min determined from the 
+    data prior to the checkpoint.
+
+    Parameters
+    ==========
+    df : DataFame
+    factor : float
+        Number added-to/subtracted-from 1.0 to determin threshold
+    check : int
+        Number used in .iloc[:check] to determine the max-min range.
+    """
+    cols = df.columns
+
+    lower_thresh = 1.0 - factor
+    upper_thresh = 1.0 + factor
+
+    l = lambda x: x.iloc[:check].min() * lower_thresh
+    u = lambda x: x.iloc[:check].max() * upper_thresh
+
+    items = {k : (l(df[k]), u(df[k])) for k in cols}
+    for k, (lower, upper) in items.items():
+        if (lower > df[k].iloc[check:]).any() or (upper < df[k].iloc[check:]).any():
+            raise AssertionError
+    return df
+
+def recent_within_order_magnitude(df, factor=0.1, check=-2):
+    """
+    Assert that all the datapoints after the check point, in the index
+    are within a tolerance factor from the max and min determined from the 
+    data prior to the checkpoint.
+
+    Parameters
+    ==========
+    df : DataFame
+    factor : float
+        Number added-to/subtracted-from 1.0 to determin threshold
+    check : int
+        Number used in .iloc[:check] to determine the max-min range.
+    """
+    cols = df.columns
+
+    lower_thresh = 1.0 - factor
+    upper_thresh = 1.0 + factor
+
+    l = lambda x: x[check] * lower_thresh
+    u = lambda x: x[check] * upper_thresh
+
+    items = {k : (l(df[k]), u(df[k])) for k in cols}
+    for k, (lower, upper) in items.items():
+        if (lower > df[k].iloc[check:]).any() or (upper < df[k].iloc[check:]).any():
+            raise AssertionError
+    return df
+    
 def has_dtypes(df, items):
     """
     Assert that a DataFrame has `dtypes`
@@ -134,4 +209,3 @@ def has_dtypes(df, items):
 
 __all__ = [is_monotonic, is_shape, none_missing, unique_index, within_n_std,
            within_range, within_set, has_dtypes]
-
