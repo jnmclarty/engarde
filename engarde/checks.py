@@ -109,6 +109,22 @@ class ResetSlice(object):
 
 Reset = ResetSlice()
 
+def within_range(df, items=None):
+    """
+    Assert that a DataFrame is within a range.
+
+    Parameters
+    ==========
+    df : DataFame
+    items : dict
+        mapping of columns (k) to a (low, high) tuple (v)
+        that ``df[k]`` is expected to be between.
+    """
+    for k, (lower, upper) in items.items():
+        if (lower > df[k]).any() or (upper < df[k]).any():
+            raise AssertionError
+    return df
+        
 class SlicedChecks(object):
     def __init__(self, sl=None, post_check_reset=False):
         self.pcr = post_check_reset
@@ -118,25 +134,17 @@ class SlicedChecks(object):
             self.sl = slice(None)
         else:
             self.sl = sl
-        return self  
-    def within_range(self, df, items=None):
-        """
-        Assert that a DataFrame is within a range.
-    
-        Parameters
-        ==========
-        df : DataFame
-        items : dict
-            mapping of columns (k) to a (low, high) tuple (v)
-            that ``df[k]`` is expected to be between.
-        """
+        return self 
+    def within_range(self, df, items=None):        
         slc = copy(self.sl)
         if self.pcr:
             self.sl = slice(None)
-        for k, (lower, upper) in items.items():
-            if (lower > df[k].iloc[slc]).any() or (upper < df[k].iloc[slc]).any():
-                raise AssertionError
+        try:
+            within_range(df.iloc[slc], items)
+        except:
+            raise AssertionError
         return df
+
 
 sc = SlicedChecks()
 scr = SlicedChecks(post_check_reset=True)
