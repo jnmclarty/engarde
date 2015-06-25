@@ -87,7 +87,7 @@ def within_range(items):
         @wraps(func)
         def wrapper(*args, **kwargs):
             result = func(*args, **kwargs)
-            ck.within_range(result, items)
+            ck.SlicedChecks().within_range(result, items)
             return result
         return wrapper
     return decorate

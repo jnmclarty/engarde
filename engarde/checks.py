@@ -10,6 +10,7 @@ Each function in here should
 """
 import numpy as np
 import pandas as pd
+from copy import copy
 
 def none_missing(df, sl=None, columns=None):
     """
@@ -103,24 +104,42 @@ def within_set(df, sl=None, items=None):
             raise AssertionError
     return df
 
-def within_range(df, sl=None, items=None):
-    """
-    Assert that a DataFrame is within a range.
+class ResetSlice(object):
+    pass
 
-    Parameters
-    ==========
-    df : DataFame
-    sl : slice
-        Used to test a subset of the dataframe, using .iloc
-    items : dict
-        mapping of columns (k) to a (low, high) tuple (v)
-        that ``df[k]`` is expected to be between.
-    """
-    slc = sl or slice(None)
-    for k, (lower, upper) in items.items():
-        if (lower > df[k].iloc[slc]).any() or (upper < df[k].iloc[slc]).any():
-            raise AssertionError
-    return df
+Reset = ResetSlice()
+
+class SlicedChecks(object):
+    def __init__(self, sl=None, post_check_reset=False):
+        self.pcr = post_check_reset
+        self.sl = sl or slice(None)
+    def __getitem__(self, sl):
+        if isinstance(sl, ResetSlice):
+            self.sl = slice(None)
+        else:
+            self.sl = sl
+        return self  
+    def within_range(self, df, items=None):
+        """
+        Assert that a DataFrame is within a range.
+    
+        Parameters
+        ==========
+        df : DataFame
+        items : dict
+            mapping of columns (k) to a (low, high) tuple (v)
+            that ``df[k]`` is expected to be between.
+        """
+        slc = copy(self.sl)
+        if self.pcr:
+            self.sl = slice(None)
+        for k, (lower, upper) in items.items():
+            if (lower > df[k].iloc[slc]).any() or (upper < df[k].iloc[slc]).any():
+                raise AssertionError
+        return df
+
+sc = SlicedChecks()
+scr = SlicedChecks(post_check_reset=True)
 
 def within_n_std(df, sl=None, n=3):
     """
@@ -150,5 +169,5 @@ def has_dtypes(df, items):
     return df
 
 __all__ = [is_monotonic, is_shape, none_missing, unique_index, within_n_std,
-           within_range, within_set, has_dtypes]
+           sc.within_range, within_set, has_dtypes]
 

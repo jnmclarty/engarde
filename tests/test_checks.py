@@ -7,6 +7,10 @@ import pandas.util.testing as tm
 import engarde.checks as ck
 import engarde.decorators as dc
 
+sc = ck.sc
+scr = ck.scr
+
+Reset = ck.Reset
 
 def _add_one(df):
     return df + 1
@@ -177,12 +181,24 @@ def test_within_set():
 def test_within_range():
     df = pd.DataFrame({'A': [-1, 0, 1]})
     items = {'A': (-1, 1)}
-    tm.assert_frame_equal(df, ck.within_range(df, items))
+    
+    tm.assert_frame_equal(df, sc.within_range(df, items))
+    tm.assert_frame_equal(df, sc[-2].within_range(df, items))
+    sc[:] #sc remembers state, so it would have to be reset
+    tm.assert_frame_equal(df, sc.within_range(df, items))
+
+    tm.assert_frame_equal(df, scr.within_range(df, items))
+    tm.assert_frame_equal(df, scr[-2].within_range(df, items))
+    #scr doesn't remember state, so it wouldn't have to be reset
+    tm.assert_frame_equal(df, scr.within_range(df, items))    
+    
+    #the decorators don't get slice feature, for now...
     tm.assert_frame_equal(df, dc.within_range(items)(_noop)(df))
 
+    sc[Reset]
     items['A'] = (0, 1)
     with pytest.raises(AssertionError):
-        ck.within_range(df, items)
+        sc.within_range(df, items)
     with pytest.raises(AssertionError):
         dc.within_range(items)(_noop)(df)
 
