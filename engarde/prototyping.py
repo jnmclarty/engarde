@@ -1,10 +1,5 @@
 
-from types import BooleanType, ObjectType
-
-from pandas import DataFrame
-
-from slicers import ix, iloc, loc, SliceStore
-
+from slicers import ix, SliceStore
 from functools import wraps
 from copy import copy
 
@@ -46,6 +41,28 @@ def _acheck_raize(dforig, dfcheck, dfderive, *args, **kwargs):
     else:
         _raize(**_raize_kwargs)  
 
+def _generic_check_maker(returner, raizer):
+    def check(self, df, *args, **kwargs):
+        
+        #print self, df, args, kwargs
+        
+        slc, args = _lop_off_head_if_slice(args, self.check_slc)
+        slcd, args = _lop_off_head_if_slice(args, self.derive_slc)    
+        
+        dfc = getattr(df, slc.mode)[slc.slc]
+        dfd = getattr(df, slcd.mode)[slcd.slc]
+        
+        if self.raize is not None:
+            result = raizer(df, dfc, dfd, 
+                                   *args, _raize=self.raize, 
+                                   _raize_kwargs=self.raize_kwargs, **kwargs)
+        elif self.ret is not None:
+            result = returner(df, dfc, dfd, *args, _ret=self.ret, **kwargs)
+        else:
+            raise Exception("Can't read your mind")
+        return result
+    return check
+        
 def _lop_off_head_if_slice(args, otherwise):
     if len(args) > 1:
         if isinstance(args[0], (slice, SliceStore)):
@@ -73,26 +90,8 @@ class CheckSet(object):
                 #TODO make this better...
                 self.raize_kwargs = {}
  
-    def acheck(self, df, *args, **kwargs):
-        
-        #print self, df, args, kwargs
-        
-        slc, args = _lop_off_head_if_slice(args, self.check_slc)
-        slcd, args = _lop_off_head_if_slice(args, self.derive_slc)    
-        
-        dfc = getattr(df, slc.mode)[slc.slc]
-        dfd = getattr(df, slcd.mode)[slcd.slc]
-        
-        if self.raize is not None:
-            result = _acheck_raize(df, dfc, dfd, 
-                                   *args, _raize=self.raize, 
-                                   _raize_kwargs=self.raize_kwargs, **kwargs)
-        elif self.ret is not None:
-            result = _acheck_ret(df, dfc, dfd, *args, _ret=self.ret, **kwargs)
-        else:
-            raise Exception("Can't read your mind")
-        
-        return result
+    acheck = _generic_check_maker(_acheck_ret, _acheck_raize)
+    
     def decorator_maker(self, name, *args, **kwargs):
         def adecorator(*args, **kwargs):
             def decorate(func):
@@ -107,14 +106,14 @@ class CheckSet(object):
                 return wrapper
             return decorate
         return adecorator
-
-acheck = CheckSet().acheck
-acheck_dec = CheckSet().decorator_maker('acheck')
             
 if __name__ == '__main__':
     import pandas as pd
     df = pd.DataFrame(data=[1,2,3,4])
     
+    acheck = CheckSet().acheck
+    acheck_dec = CheckSet().decorator_maker('acheck')
+
     acheck(df)
     
     @acheck_dec
