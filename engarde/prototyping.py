@@ -3,7 +3,7 @@ from types import BooleanType, ObjectType
 
 from pandas import Dataframe
 
-from slicers import ix, iloc, loc
+from slicers import ix, iloc, loc, SliceStore
 
 from copy import copy
 
@@ -38,12 +38,18 @@ class CheckSet(object):
         
         #dologicchecklogic, calculating as necessary...
         return (dforig,) # ... a function of _ret)
+    
+    def acheck(self, df, *args, **kwargs):
         
-    def acheck(self, df, slc, slcd, *args, **kwargs):
+        if isinstance(args[0], (slice, ))
+        if 'slc' in kwargs:
+            slc = kwargs['slc']
+            del kwargs['slc']
         
-        # pull out ...from kwargs
-        #       ix = None, iloc = None, loc = None,
-        #       ix_d=None, iloc_d=None, loc_d=None
+        return self.
+    def _acheck(self, df, slc, slcd, *args, **kwargs):
+        
+        
         
         #detect if slc and slcd belong at the front of 
         #args, add if they do, otherwise, do something like this...
