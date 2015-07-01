@@ -117,6 +117,6 @@ if __name__ == '__main__':
     
     acheck(df)
     
-    @acheck
+    @acheck_dec
     def myfunc(df):
         return df + 1.0
