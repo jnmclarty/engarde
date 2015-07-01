@@ -1,19 +1,19 @@
 class SliceStore(object):
     def __init__(self, slc=None, mode='ix'):
-        self._slc = slc or slice(None) 
+        self.slc = slc or slice(None) 
         self.mode = mode
     def __getitem__(self, slc):
-        self._slc = slc
+        self.slc = slc
         return None
     def __setitem__(self, _, __):
         raise Exception("SliceStore cannot be assigned values")
     def __str__(self):
-        return "{{.{}[{}]}}".format(self.mode, repr(self._slc))
+        return "{{.{}[{}]}}".format(self.mode, repr(self.slc))
 
 def _index_slicer_factory(defaultmode):
     class IndexSlicer(SliceStore):
         def __init__(self, slc=None, mode=defaultmode):
-            self._slc = slc or slice(None) 
+            self.slc = slc or slice(None) 
             self.mode = mode
     return IndexSlicer
 
