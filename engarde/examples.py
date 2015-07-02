@@ -3,9 +3,19 @@ from slicers import iloc, ix
 
 import pandas as pd
 
+# Create some data...
 ind = pd.date_range('2010', '2015', freq='A')
 adf = pd.DataFrame({'one' : range(5), 'two' : [ i ** 2 for i in range(5)]}, index=ind)
 adf.ix[4,'two'] = pd.np.NaN
+
+"""
+            one  two
+2010-12-31    0    0
+2011-12-31    1    1
+2012-12-31    2    4
+2013-12-31    3    9
+2014-12-31    4  NaN
+"""
 
 # Basic call...
 try:
