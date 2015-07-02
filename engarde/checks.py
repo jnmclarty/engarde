@@ -12,21 +12,9 @@ import numpy as np
 import pandas as pd
 from copy import copy
 
-def none_missing(df, sl=None, columns=None):
-    """
-    Asserts that there are no missing values (NaNs) in the DataFrame.
-    Parameters
-    ==========
-    df : Series or DataFrame    
-    sl : slice
-        Used to test a subset of the dataframe, using .iloc
-    columns : list of column names
-    """
-    slc = sl or slice(None)
-    if columns is None:
-        columns = df.columns
-    assert not df[columns].iloc[slc].isnull().any().any()
-    return df
+from core import CheckSet
+
+none_missing = CheckSet().none_missing
 
 def is_monotonic(df, items=None, increasing=None, strict=False):
     """

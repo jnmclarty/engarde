@@ -4,7 +4,7 @@ class SliceStore(object):
         self.mode = mode
     def __getitem__(self, slc):
         self.slc = slc
-        return None
+        return self
     def __setitem__(self, _, __):
         raise Exception("SliceStore cannot be assigned values")
     def __str__(self):
