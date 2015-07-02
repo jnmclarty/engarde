@@ -29,7 +29,7 @@ except:
 
 
 try:
-    none_missing(adf, iloc[:-2])
+    none_missing(adf, iloc[-2:])
 except AssertionError:
     print "Some values are missing in the last two rows"
 
@@ -42,16 +42,16 @@ except AssertionError:
 
 try:
     none_missing(adf, ix[:'2013'])
-    print "There are no problems looking at up to row 2013"
+    print "There are no problems looking at data before 2013"
 except:
     pass
 
 # Did you notice the type detection between passing 'two', and the slicers?
-# Look ma, args only!
+# Look ma, args only - kwargs not mandatory!
 
 # Now for some real fun...
 
-from core import RaiseSet, ReturnSet
+from core import RaiseSet
 
 rs = RaiseSet(IOError, "IO error makes no sense, but why not?")
 none_missing = rs.none_missing
@@ -74,6 +74,8 @@ try:
 except IOError as e:
     print "Second time the charm?"
     print e.message
+
+from core import ReturnSet
 
 rs = ReturnSet(('bool', 'obj'))
 none_missing = rs.none_missing
